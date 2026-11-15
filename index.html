@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JLPT N3 단어 암기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+JP:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1f1f1f; --card:#2b2b2a; --line:#3d3d3b; --text:#f4f1ec; --muted:#8d8a85;
+  --accent:#f4a23c; --blue-bg:#11285c; --blue:#7db4ff; --ok:#3ecf8e; --bad:#ff6b6b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',system-ui,sans-serif}
+body{min-height:100vh;display:flex;justify-content:center}
+#app{width:100%;max-width:480px;min-height:100vh;padding:14px 16px 22px;display:flex;flex-direction:column}
+button{font:inherit;color:inherit;cursor:pointer}
+.hidden{display:none!important}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;height:52px}
+.round-btn{width:44px;height:44px;border-radius:50%;border:0;background:#3a3a39;display:grid;place-items:center;font-size:20px}
+.title{font-size:18px;font-weight:700}
+
+/* home */
+.home h1{font-size:22px;margin:18px 0 4px}
+.home p.sub{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.5}
+.days{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.day{border:1.5px solid var(--line);background:var(--card);border-radius:16px;padding:14px 6px;text-align:center}
+.day b{display:block;font-size:17px}
+.day span{font-size:12px;color:var(--muted)}
+.day.sel{border-color:var(--accent);background:#3a2f1e}
+.opts{margin:18px 0 6px;display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;font-size:15px}
+.opt small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.sw{width:46px;height:28px;border-radius:14px;background:#4a4a48;position:relative;flex:none;transition:.2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on{background:var(--accent)}
+.sw.on::after{left:21px}
+.primary{width:100%;border:0;border-radius:16px;background:var(--accent);color:#231a0a;font-weight:700;font-size:17px;padding:16px;margin-top:12px}
+.primary:disabled{opacity:.4}
+.count{text-align:center;color:var(--muted);font-size:13px;margin-top:10px}
+.favlist{margin-top:22px}
+.favlist h3{font-size:15px;margin:0 0 8px;color:var(--muted);font-weight:500}
+.favitem{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.favitem .w{font-family:'Noto Serif JP',serif;font-size:19px}
+.favitem .r{font-size:12px;color:var(--muted)}
+.favitem .m{font-size:13px;margin-left:auto;text-align:right;color:#cfcac2;max-width:45%}
+.favitem .d{font-size:11px;color:var(--blue);background:var(--blue-bg);border-radius:8px;padding:2px 7px;flex:none}
+.star-mini{background:none;border:0;font-size:20px;color:var(--accent);padding:0 2px}
+
+/* study */
+.prog{display:flex;align-items:center;gap:12px;margin:8px 0 14px}
+.prog .n{font-weight:700;font-size:15px;min-width:52px}
+.bar{flex:1;height:10px;border-radius:6px;background:#444;overflow:hidden}
+.bar i{display:block;height:100%;background:#fbefe3;border-radius:6px;transition:width .25s}
+.round-chip{font-size:12px;color:var(--muted);background:#333;border-radius:12px;padding:6px 10px;white-space:nowrap}
+.card{flex:1;min-height:420px;background:var(--card);border:1px solid var(--line);border-radius:26px;padding:20px 20px 18px;display:flex;flex-direction:column;position:relative}
+.card-head{display:flex;align-items:center;gap:10px}
+.dayTag{background:var(--blue-bg);color:var(--blue);font-weight:700;font-size:15px;border-radius:20px;padding:9px 16px}
+.star{background:none;border:0;font-size:30px;line-height:1;color:#555;padding:2px 4px}
+.star.on{color:var(--accent)}
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0;gap:6px}
+.reading{font-family:'Noto Serif JP',serif;font-size:22px;color:#a8a49d;min-height:30px;letter-spacing:.08em}
+.word{font-family:'Noto Serif JP',serif;color:#faf8f4;line-height:1.2;word-break:keep-all;font-weight:400}
+.meaning{font-size:26px;font-weight:700;min-height:40px;margin-top:6px;padding:0 6px;line-height:1.35}
+.card-foot{display:flex;gap:10px;align-items:center;border-top:1px solid var(--line);padding-top:16px}
+.undo{width:52px;height:52px;border-radius:50%;border:1.5px solid #484846;background:transparent;font-size:20px;color:#9a968f;flex:none}
+.undo:disabled{opacity:.35}
+.reveal{flex:1;height:52px;border-radius:26px;border:1.5px solid #484846;background:transparent;font-size:17px;font-weight:500}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.ans{height:84px;border-radius:22px;font-size:21px;font-weight:700;border:1.5px solid #484846;background:#222}
+.ans.ok{background:#2d2d2c;border-color:#2d2d2c}
+.ans:disabled{opacity:.4}
+.fade{animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* result */
+.result{text-align:center;padding-top:30px}
+.result .big{font-size:56px}
+.result h2{margin:6px 0 4px;font-size:24px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 4px}
+.stat b{display:block;font-size:22px}
+.stat span{font-size:12px;color:var(--muted)}
+.missed{text-align:left;margin-top:8px}
+.ghost{width:100%;border:1.5px solid #484846;background:transparent;border-radius:16px;padding:15px;font-size:16px;font-weight:500;margin-top:10px}
+.resume{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;border:1.5px solid var(--accent);background:#3a2f1e;border-radius:16px;padding:14px 16px;margin-top:14px}
+.resume b{font-size:16px}.resume small{display:block;color:#cdb89a;font-size:12px;margin-top:3px}.resume span{color:var(--accent);font-size:18px}
+.hint{color:var(--muted);font-size:12px;text-align:center;margin-top:14px}
+@media (max-width:380px){.ans{height:72px;font-size:18px}.meaning{font-size:22px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const DATA = [[["相手", "あいて", "상대"], ["アイディア", "アイディア", "아이디어"], ["諦める", "あきらめる", "포기하다, 단념하다"], ["明ける", "あける", "(날이) 밝다, (기간이) 끝나다"], ["浅い", "あさい", "얕다"], ["預かる", "あずかる", "맡다, 보관하다"], ["汗", "あせ", "땀"], ["暖かい", "あたたかい", "따뜻하다"], ["温める", "あたためる", "데우다, 따뜻하게 하다"], ["辺り", "あたり", "근처, 주변"], ["当たる", "あたる", "맞다, 부딪치다, 적중하다"], ["厚い", "あつい", "두껍다"], ["集める", "あつめる", "모으다"], ["穴", "あな", "구멍"], ["アナウンス", "アナウンス", "안내 방송"], ["余る", "あまる", "남다"], ["編む", "あむ", "뜨다, 짜다(뜨개질)"], ["怪しい", "あやしい", "수상하다, 의심스럽다"], ["謝る", "あやまる", "사과하다"], ["現す", "あらわす", "나타내다, 드러내다"], ["表れる", "あらわれる", "(감정·결과 등이) 나타나다"], ["泡", "あわ", "거품"], ["合わせる", "あわせる", "맞추다, 합치다"], ["慌てる", "あわてる", "당황하다, 허둥대다"], ["暗記", "あんき", "암기"], ["胃", "い", "위(장기)"], ["以外", "いがい", "이외"], ["意外に", "いがいに", "의외로"], ["池", "いけ", "연못"], ["以降", "いこう", "이후"], ["意志", "いし", "의지"], ["意識", "いしき", "의식"], ["衣装", "いしょう", "의상"], ["急ぐ", "いそぐ", "서두르다"], ["痛い", "いたい", "아프다"], ["いつの間にか", "いつのまにか", "어느새, 어느 틈에"], ["一般的", "いっぱんてき", "일반적"], ["一方で", "いっぽうで", "한편으로"], ["いつも", "いつも", "항상, 언제나"], ["移動", "いどう", "이동"], ["祈る", "いのる", "빌다, 기도하다"], ["いよいよ", "いよいよ", "드디어, 마침내"], ["いらいら", "いらいら", "초조한 모양, 짜증"], ["岩", "いわ", "바위"], ["祝う", "いわう", "축하하다"], ["印刷", "いんさつ", "인쇄"], ["印象", "いんしょう", "인상"], ["植える", "うえる", "심다"], ["受かる", "うかる", "합격하다"], ["浮く", "うく", "뜨다"]], [["受付", "うけつけ", "접수(처), 안내 데스크"], ["動く", "うごく", "움직이다"], ["失う", "うしなう", "잃다"], ["嘘", "うそ", "거짓말"], ["疑う", "うたがう", "의심하다"], ["内側", "うちがわ", "안쪽"], ["うっかり", "うっかり", "깜빡, 무심코"], ["美しい", "うつくしい", "아름답다"], ["写す", "うつす", "베끼다, 촬영하다"], ["上手い", "うまい", "능숙하다, 맛있다"], ["埋める", "うめる", "묻다, 메우다"], ["裏", "うら", "뒤, 뒷면"], ["売り切れる", "うりきれる", "매진되다"], ["うろうろ", "うろうろ", "어슬렁어슬렁, 갈팡질팡"], ["運行", "うんこう", "운행"], ["運動場", "うんどうじょう", "운동장"], ["永遠", "えいえん", "영원"], ["影響", "えいきょう", "영향"], ["営業", "えいぎょう", "영업"], ["栄養", "えいよう", "영양"], ["笑顔", "えがお", "웃는 얼굴"], ["エネルギー", "エネルギー", "에너지"], ["偉い", "えらい", "훌륭하다, 대단하다"], ["選ぶ", "えらぶ", "고르다, 선택하다"], ["延期", "えんき", "연기"], ["演奏", "えんそう", "연주"], ["追いつく", "おいつく", "따라잡다"], ["追い抜く", "おいぬく", "추월하다"], ["お祝い", "おいわい", "축하(선물)"], ["追う", "おう", "쫓다, 뒤따르다"], ["応援", "おうえん", "응원"], ["横断", "おうだん", "횡단"], ["往復", "おうふく", "왕복"], ["応募", "おうぼ", "응모"], ["大きさ", "おおきさ", "크기"], ["オープン", "オープン", "오픈, 개점"], ["大家", "おおや", "집주인"], ["丘", "おか", "언덕"], ["おかしい", "おかしい", "이상하다, 우습다"], ["遅れる", "おくれる", "늦다, 지각하다"], ["怒る", "おこる", "화내다"], ["惜しい", "おしい", "아깝다, 안타깝다"], ["教える", "おしえる", "가르치다, 알려주다"], ["遅い", "おそい", "늦다, 느리다"], ["お互いに", "おたがいに", "서로"], ["落ち着く", "おちつく", "침착해지다, 진정되다"], ["驚く", "おどろく", "놀라다"], ["覚える", "おぼえる", "외우다, 기억하다"], ["溺れる", "おぼれる", "물에 빠지다"], ["思い付く", "おもいつく", "생각해내다, 떠올리다"]], [["表", "おもて", "겉, 앞면"], ["親", "おや", "부모"], ["降りる", "おりる", "(탈것에서) 내리다"], ["折る", "おる", "접다, 꺾다"], ["折れる", "おれる", "접히다, 부러지다"], ["終わらせる", "おわらせる", "끝내다, 마치다"], ["終わり", "おわり", "끝"], ["終わる", "おわる", "끝나다"], ["温泉", "おんせん", "온천"], ["温暖化", "おんだんか", "온난화"], ["温度", "おんど", "온도"], ["カーブ", "カーブ", "커브"], ["絵画", "かいが", "회화, 그림"], ["解決", "かいけつ", "해결"], ["改札", "かいさつ", "개찰(구)"], ["回収", "かいしゅう", "회수"], ["外出", "がいしゅつ", "외출"], ["解消", "かいしょう", "해소"], ["外食", "がいしょく", "외식"], ["会費", "かいひ", "회비"], ["返す", "かえす", "돌려주다"], ["替える", "かえる", "바꾸다, 교체하다"], ["換える", "かえる", "바꾸다, 교환하다"], ["変える", "かえる", "바꾸다, 변경하다"], ["顔", "かお", "얼굴"], ["価格", "かかく", "가격"], ["鏡", "かがみ", "거울"], ["輝く", "かがやく", "빛나다"], ["かき混ぜる", "かきまぜる", "휘젓다, 섞다"], ["確実", "かくじつ", "확실"], ["隠す", "かくす", "숨기다"], ["各地", "かくち", "각지"], ["過去", "かこ", "과거"], ["囲まれる", "かこまれる", "둘러싸이다"], ["重ねる", "かさねる", "겹치다, 쌓다"], ["下線", "かせん", "밑줄"], ["数える", "かぞえる", "세다"], ["肩", "かた", "어깨"], ["固い", "かたい", "단단하다, 딱딱하다"], ["形", "かたち", "모양, 형태"], ["片付ける", "かたづける", "정리하다, 치우다"], ["カタログ", "カタログ", "카탈로그"], ["価値", "かち", "가치"], ["勝つ", "かつ", "이기다"], ["がっかり", "がっかり", "실망하는 모양"], ["各国", "かっこく", "각국"], ["カット", "カット", "컷, 자르기"], ["仮定", "かてい", "가정"], ["過程", "かてい", "과정"], ["角", "かど", "모퉁이, 모서리"]], [["悲しい", "かなしい", "슬프다"], ["必ず", "かならず", "반드시"], ["壁", "かべ", "벽"], ["髪", "かみ", "머리카락"], ["かゆい", "かゆい", "가렵다"], ["空", "から", "빈 것, 비어 있음"], ["がらがら", "がらがら", "텅 빈 모양"], ["からから", "からから", "바싹 마른 모양"], ["借りる", "かりる", "빌리다"], ["軽い", "かるい", "가볍다"], ["枯れる", "かれる", "시들다, 마르다"], ["カロリー", "カロリー", "칼로리"], ["間隔", "かんかく", "간격"], ["観客", "かんきゃく", "관객"], ["環境", "かんきょう", "환경"], ["歓迎", "かんげい", "환영"], ["感激", "かんげき", "감격"], ["観光", "かんこう", "관광"], ["感じ", "かんじ", "느낌"], ["関心", "かんしん", "관심"], ["完成", "かんせい", "완성"], ["簡単だ", "かんたんだ", "간단하다"], ["感動", "かんどう", "감동"], ["機械", "きかい", "기계"], ["機会", "きかい", "기회"], ["期限", "きげん", "기한"], ["危険だ", "きけんだ", "위험하다"], ["帰国", "きこく", "귀국"], ["傷", "きず", "상처"], ["規則", "きそく", "규칙"], ["期待", "きたい", "기대"], ["汚い", "きたない", "더럽다"], ["貴重", "きちょう", "귀중"], ["きつい", "きつい", "빡빡하다, 힘들다, 꽉 끼다"], ["気付く", "きづく", "알아차리다"], ["記念", "きねん", "기념"], ["厳しい", "きびしい", "엄격하다, 혹독하다"], ["希望", "きぼう", "희망"], ["疑問", "ぎもん", "의문"], ["キャンセル", "キャンセル", "취소"], ["休日", "きゅうじつ", "휴일"], ["強化", "きょうか", "강화"], ["行事", "ぎょうじ", "행사"], ["共通", "きょうつう", "공통"], ["協力", "きょうりょく", "협력"], ["許可", "きょか", "허가"], ["距離", "きょり", "거리"], ["嫌う", "きらう", "싫어하다"], ["記録", "きろく", "기록"], ["禁煙", "きんえん", "금연"]], [["禁止", "きんし", "금지"], ["緊張", "きんちょう", "긴장"], ["空席", "くうせき", "빈자리"], ["偶然", "ぐうぜん", "우연"], ["臭い", "くさい", "냄새나다"], ["くたびれる", "くたびれる", "지치다, 피곤하다"], ["ぐっすり", "ぐっすり", "푹(자는 모양)"], ["配る", "くばる", "나눠주다, 배포하다"], ["区別", "くべつ", "구별"], ["ぐらぐら", "ぐらぐら", "흔들흔들"], ["暮す", "くらす", "살다, 지내다"], ["繰り返す", "くりかえす", "되풀이하다, 반복하다"], ["苦しい", "くるしい", "괴롭다, 고통스럽다"], ["加える", "くわえる", "더하다, 추가하다"], ["詳しい", "くわしい", "자세하다, 정통하다"], ["訓練", "くんれん", "훈련"], ["経営", "けいえい", "경영"], ["経験", "けいけん", "경험"], ["計算", "けいさん", "계산"], ["掲示", "けいじ", "게시"], ["契約", "けいやく", "계약"], ["経由", "けいゆ", "경유"], ["景色", "けしき", "경치"], ["血圧", "けつあつ", "혈압"], ["血液", "けつえき", "혈액"], ["結果", "けっか", "결과"], ["結局", "けっきょく", "결국"], ["結構", "けっこう", "꽤, 충분함, 괜찮음"], ["決心", "けっしん", "결심"], ["欠席", "けっせき", "결석"], ["欠点", "けってん", "결점"], ["件", "けん", "건, 사안"], ["原因", "げんいん", "원인"], ["健康", "けんこう", "건강"], ["検査", "けんさ", "검사"], ["現在", "げんざい", "현재"], ["現実", "げんじつ", "현실"], ["減少", "げんしょう", "감소"], ["建設", "けんせつ", "건설"], ["建築", "けんちく", "건축"], ["原料", "げんりょう", "원료"], ["濃い", "こい", "진하다"], ["恋しい", "こいしい", "그립다"], ["講演", "こうえん", "강연"], ["効果的だ", "こうかてきだ", "효과적이다"], ["交換", "こうかん", "교환"], ["航空", "こうくう", "항공"], ["広告", "こうこく", "광고"], ["向上", "こうじょう", "향상"], ["交流", "こうりゅう", "교류"]], [["呼吸", "こきゅう", "호흡"], ["国籍", "こくせき", "국적"], ["焦げる", "こげる", "타다, 눌어붙다"], ["腰", "こし", "허리"], ["ご自由", "ごじゆう", "자유롭게 (하세요)"], ["個人", "こじん", "개인"], ["断る", "ことわる", "거절하다"], ["コマーシャル", "コマーシャル", "광고(CM)"], ["細かい", "こまかい", "세세하다, 잘다"], ["困る", "こまる", "곤란하다"], ["ごろごろ", "ごろごろ", "데굴데굴, 빈둥빈둥"], ["転ぶ", "ころぶ", "넘어지다"], ["こんこん", "こんこん", "콜록콜록, 똑똑(노크)"], ["混雑", "こんざつ", "혼잡"], ["ざあざあ", "ざあざあ", "쏴쏴(비 오는 소리)"], ["サービス", "サービス", "서비스"], ["最近", "さいきん", "최근"], ["最初", "さいしょ", "처음"], ["最新", "さいしん", "최신"], ["最中", "さいちゅう", "한창 ~하는 중"], ["材料", "ざいりょう", "재료"], ["サイン", "サイン", "사인, 서명"], ["探す", "さがす", "찾다"], ["坂道", "さかみち", "언덕길"], ["盛ん", "さかん", "활발함, 번성함"], ["叫ぶ", "さけぶ", "외치다"], ["誘う", "さそう", "권유하다, 꾀다"], ["さっき", "さっき", "아까"], ["早速", "さっそく", "즉시, 곧바로"], ["さらさら", "さらさら", "보송보송, 술술"], ["触る", "さわる", "만지다"], ["参加", "さんか", "참가"], ["残業", "ざんぎょう", "야근, 잔업"], ["賛成", "さんせい", "찬성"], ["残念", "ざんねん", "유감, 아쉬움"], ["サンプル", "サンプル", "샘플"], ["試合", "しあい", "시합"], ["塩", "しお", "소금"], ["支給", "しきゅう", "지급"], ["資源", "しげん", "자원"], ["事故", "じこ", "사고"], ["指示", "しじ", "지시"], ["支出", "ししゅつ", "지출"], ["事情", "じじょう", "사정"], ["試食", "ししょく", "시식"], ["自信", "じしん", "자신(감)"], ["静かだ", "しずかだ", "조용하다"], ["沈む", "しずむ", "가라앉다, (해가) 지다"], ["姿勢", "しせい", "자세"], ["自然", "しぜん", "자연"]], [["従う", "したがう", "따르다"], ["自宅", "じたく", "자택"], ["親しい", "したしい", "친하다"], ["しっかり", "しっかり", "확실히, 단단히"], ["失業", "しつぎょう", "실업"], ["実験", "じっけん", "실험"], ["室内", "しつない", "실내"], ["失敗", "しっぱい", "실패"], ["実用的だ", "じつようてきだ", "실용적이다"], ["実力", "じつりょく", "실력"], ["指定", "してい", "지정"], ["指導", "しどう", "지도"], ["しばらく", "しばらく", "잠시, 한동안"], ["縛る", "しばる", "묶다"], ["仕舞う", "しまう", "치우다, 넣다, 끝내다"], ["自慢", "じまん", "자랑"], ["示す", "しめす", "보이다, 나타내다"], ["地面", "じめん", "지면, 땅바닥"], ["借金", "しゃっきん", "빚"], ["喋る", "しゃべる", "수다 떨다, 말하다"], ["周囲", "しゅうい", "주위"], ["週刊誌", "しゅうかんし", "주간지"], ["集合", "しゅうごう", "집합"], ["就職", "しゅうしょく", "취직"], ["修正", "しゅうせい", "수정"], ["渋滞", "じゅうたい", "정체"], ["重大だ", "じゅうだいだ", "중대하다"], ["住宅", "じゅうたく", "주택"], ["集団", "しゅうだん", "집단"], ["集中", "しゅうちゅう", "집중"], ["収入", "しゅうにゅう", "수입(소득)"], ["十分", "じゅうぶん", "충분"], ["重要", "じゅうよう", "중요"], ["修理", "しゅうり", "수리"], ["祝日", "しゅくじつ", "공휴일"], ["縮小", "しゅくしょう", "축소"], ["手術", "しゅじゅつ", "수술"], ["主張", "しゅちょう", "주장"], ["出勤", "しゅっきん", "출근"], ["出身", "しゅっしん", "출신"], ["出張", "しゅっちょう", "출장"], ["出発", "しゅっぱつ", "출발"], ["首都", "しゅと", "수도"], ["主要", "しゅよう", "주요"], ["需要", "じゅよう", "수요"], ["種類", "しゅるい", "종류"], ["順番", "じゅんばん", "순서, 차례"], ["紹介", "しょうかい", "소개"], ["商業", "しょうぎょう", "상업"], ["乗車", "じょうしゃ", "승차"]], [["招待", "しょうたい", "초대"], ["上達", "じょうたつ", "숙달, 실력이 늚"], ["冗談", "じょうだん", "농담"], ["衝突", "しょうとつ", "충돌"], ["消費", "しょうひ", "소비"], ["商品", "しょうひん", "상품"], ["情報", "じょうほう", "정보"], ["将来", "しょうらい", "장래, 미래"], ["職業", "しょくぎょう", "직업"], ["食器", "しょっき", "식기"], ["処理", "しょり", "처리"], ["書類", "しょるい", "서류"], ["調べる", "しらべる", "조사하다, 알아보다"], ["知り合う", "しりあう", "서로 알게 되다"], ["資料", "しりょう", "자료"], ["進学", "しんがく", "진학"], ["真剣", "しんけん", "진지함"], ["信号", "しんごう", "신호(등)"], ["信じる", "しんじる", "믿다"], ["申請", "しんせい", "신청"], ["新鮮", "しんせん", "신선"], ["診断", "しんだん", "진단"], ["身長", "しんちょう", "신장, 키"], ["慎重", "しんちょう", "신중"], ["心配だ", "しんぱいだ", "걱정스럽다"], ["進歩", "しんぽ", "진보"], ["ずいぶん", "ずいぶん", "꽤, 상당히"], ["ずきずき", "ずきずき", "욱신욱신"], ["少しずつ", "すこしずつ", "조금씩"], ["少しも", "すこしも", "조금도"], ["過ごす", "すごす", "보내다, 지내다"], ["頭痛", "ずつう", "두통"], ["素晴らしい", "すばらしい", "훌륭하다"], ["スピード", "スピード", "스피드, 속도"], ["鋭い", "するどい", "날카롭다"], ["正解", "せいかい", "정답"], ["性格", "せいかく", "성격"], ["正確", "せいかく", "정확"], ["税金", "ぜいきん", "세금"], ["清潔", "せいけつ", "청결"], ["制限", "せいげん", "제한"], ["成績", "せいせき", "성적"], ["制服", "せいふく", "제복, 교복"], ["整理", "せいり", "정리"], ["席", "せき", "자리, 좌석"], ["責任", "せきにん", "책임"], ["せっかく", "せっかく", "모처럼"], ["積極的", "せっきょくてき", "적극적"], ["絶対", "ぜったい", "절대"], ["セット", "セット", "세트"]], [["節約", "せつやく", "절약"], ["せめて", "せめて", "하다못해, 적어도"], ["線", "せん", "선"], ["専攻", "せんこう", "전공"], ["選手", "せんしゅ", "선수"], ["全然", "ぜんぜん", "전혀"], ["宣伝", "せんでん", "선전, 홍보"], ["全部", "ぜんぶ", "전부"], ["専門家", "せんもんか", "전문가"], ["増加", "ぞうか", "증가"], ["送信", "そうしん", "송신"], ["想像", "そうぞう", "상상"], ["早退", "そうたい", "조퇴"], ["相談", "そうだん", "상담, 의논"], ["測量", "そくりょう", "측량"], ["卒業", "そつぎょう", "졸업"], ["そっくり", "そっくり", "꼭 닮음, 통째로"], ["そっと", "そっと", "살며시, 조용히"], ["そろそろ", "そろそろ", "슬슬"], ["尊敬", "そんけい", "존경"], ["存在", "そんざい", "존재"], ["尊重", "そんちょう", "존중"], ["退院", "たいいん", "퇴원"], ["大会", "たいかい", "대회"], ["代金", "だいきん", "대금"], ["退屈", "たいくつ", "지루함"], ["滞在", "たいざい", "체재, 체류"], ["大事だ", "だいじだ", "소중하다, 중요하다"], ["代表", "だいひょう", "대표"], ["大変だ", "たいへんだ", "큰일이다, 힘들다"], ["大量", "たいりょう", "대량"], ["体力", "たいりょく", "체력"], ["倒れる", "たおれる", "쓰러지다"], ["確か", "たしか", "분명히, 아마"], ["多少", "たしょう", "다소"], ["助ける", "たすける", "돕다, 구하다"], ["訪ねる", "たずねる", "방문하다"], ["尋ねる", "たずねる", "묻다"], ["ただ", "ただ", "단지, 공짜"], ["畳む", "たたむ", "접다, 개다"], ["楽しい", "たのしい", "즐겁다"], ["頼む", "たのむ", "부탁하다"], ["だぶだぶ", "だぶだぶ", "헐렁헐렁"], ["溜まる", "たまる", "쌓이다, 모이다"], ["試す", "ためす", "시험해 보다"], ["貯める", "ためる", "모으다, 저축하다"], ["頼る", "たよる", "의지하다"], ["だるい", "だるい", "나른하다"], ["短気だ", "たんきだ", "성미가 급하다"], ["単語", "たんご", "단어"]], [["単純だ", "たんじゅんだ", "단순하다"], ["団体", "だんたい", "단체"], ["担当", "たんとう", "담당"], ["担任", "たんにん", "담임"], ["地域", "ちいき", "지역"], ["チェックアウト", "チェックアウト", "체크아웃"], ["遅延", "ちえん", "지연"], ["チェンジ", "チェンジ", "체인지, 교체"], ["違う", "ちがう", "다르다, 틀리다"], ["近道", "ちかみち", "지름길"], ["地球", "ちきゅう", "지구"], ["遅刻", "ちこく", "지각"], ["知識", "ちしき", "지식"], ["知人", "ちじん", "지인"], ["ちっとも", "ちっとも", "조금도"], ["チャレンジ", "チャレンジ", "도전"], ["チャンス", "チャンス", "기회"], ["注意", "ちゅうい", "주의"], ["中止", "ちゅうし", "중지"], ["駐車", "ちゅうしゃ", "주차"], ["昼食", "ちゅうしょく", "점심 식사"], ["調査", "ちょうさ", "조사"], ["朝食", "ちょうしょく", "아침 식사"], ["調節", "ちょうせつ", "조절"], ["貯金", "ちょきん", "저금"], ["直接", "ちょくせつ", "직접"], ["ちょっと", "ちょっと", "조금, 잠깐"], ["追加", "ついか", "추가"], ["通勤", "つうきん", "통근"], ["通知", "つうち", "통지"], ["通訳", "つうやく", "통역"], ["疲れる", "つかれる", "피곤하다"], ["就く", "つく", "(직업·자리에) 취임하다, 종사하다"], ["着く", "つく", "도착하다"], ["都合", "つごう", "사정, 형편"], ["伝える", "つたえる", "전하다"], ["続き", "つづき", "계속, 다음 이야기"], ["続ける", "つづける", "계속하다"], ["包む", "つつむ", "싸다, 포장하다"], ["勤める", "つとめる", "근무하다"], ["冷たい", "つめたい", "차갑다"], ["停電", "ていでん", "정전"], ["丁寧", "ていねい", "정중함, 공손함"], ["出来上がる", "できあがる", "완성되다"], ["デザイン", "デザイン", "디자인"], ["手伝う", "てつだう", "돕다"], ["電球", "でんきゅう", "전구"], ["伝言", "でんごん", "전언, 메시지"], ["伝統", "でんとう", "전통"], ["天然", "てんねん", "천연"]], [["道具", "どうぐ", "도구"], ["動作", "どうさ", "동작"], ["当日", "とうじつ", "당일"], ["登場", "とうじょう", "등장"], ["到着", "とうちゃく", "도착"], ["通り過ぎる", "とおりすぎる", "지나가다, 지나치다"], ["どきどき", "どきどき", "두근두근"], ["得意だ", "とくいだ", "잘하다, 자신 있다"], ["特色", "とくしょく", "특색"], ["独立", "どくりつ", "독립"], ["解ける", "とける", "(매듭·문제가) 풀리다"], ["溶ける", "とける", "녹다, 용해되다"], ["都市", "とし", "도시"], ["閉じる", "とじる", "닫다, 덮다"], ["土地", "とち", "토지"], ["途中", "とちゅう", "도중"], ["突然", "とつぜん", "갑자기"], ["泊まる", "とまる", "묵다, 숙박하다"], ["止まる", "とまる", "멈추다"], ["取り上げる", "とりあげる", "집어 들다, 채택하다"], ["取り入れる", "とりいれる", "받아들이다, 도입하다"], ["取り替える", "とりかえる", "교체하다"], ["取り消す", "とりけす", "취소하다"], ["取り出す", "とりだす", "꺼내다"], ["努力", "どりょく", "노력"], ["泥", "どろ", "진흙"], ["とんとん", "とんとん", "똑똑, 탁탁(두드리는 소리)"], ["内容", "ないよう", "내용"], ["直す", "なおす", "고치다"], ["治す", "なおす", "(병을) 고치다, 치료하다"], ["流す", "ながす", "흘리다, 흘려보내다"], ["仲間", "なかま", "동료"], ["中身", "なかみ", "내용물"], ["流れ", "ながれ", "흐름"], ["泣く", "なく", "울다"], ["慰める", "なぐさめる", "위로하다"], ["殴る", "なぐる", "때리다"], ["投げ捨てる", "なげすてる", "내던져 버리다"], ["投げる", "なげる", "던지다"], ["納得", "なっとく", "납득"], ["撫でる", "なでる", "쓰다듬다"], ["波", "なみ", "파도"], ["涙", "なみだ", "눈물"], ["悩む", "なやむ", "고민하다"], ["並ぶ", "ならぶ", "줄을 서다, 늘어서다"], ["並べる", "ならべる", "늘어놓다, 나란히 놓다"], ["なるべく", "なるべく", "가능한 한"], ["慣れる", "なれる", "익숙해지다"], ["何度も", "なんども", "몇 번이나"], ["似合う", "にあう", "어울리다"]], [["苦手", "にがて", "서툶, 질색"], ["逃げる", "にげる", "도망치다"], ["入試", "にゅうし", "입시"], ["煮る", "にる", "삶다, 조리다"], ["人数", "にんずう", "인원수"], ["抜く", "ぬく", "뽑다, 빼다"], ["脱ぐ", "ぬぐ", "벗다"], ["盗む", "ぬすむ", "훔치다"], ["濡れる", "ぬれる", "젖다"], ["値段", "ねだん", "가격"], ["熱心", "ねっしん", "열심"], ["眠い", "ねむい", "졸리다"], ["能力", "のうりょく", "능력"], ["除く", "のぞく", "제외하다, 없애다"], ["望む", "のぞむ", "바라다"], ["ノック", "ノック", "노크"], ["延ばす", "のばす", "늘리다, 연장하다"], ["乗り換える", "のりかえる", "갈아타다"], ["のろのろ", "のろのろ", "느릿느릿"], ["配達", "はいたつ", "배달"], ["生える", "はえる", "(풀·이가) 나다"], ["測る", "はかる", "(길이·양을) 재다"], ["掃く", "はく", "쓸다"], ["激しい", "はげしい", "격렬하다"], ["運ぶ", "はこぶ", "옮기다, 나르다"], ["走る", "はしる", "달리다"], ["恥ずかしい", "はずかしい", "부끄럽다"], ["はっきり", "はっきり", "분명히"], ["発見", "はっけん", "발견"], ["発生", "はっせい", "발생"], ["発展", "はってん", "발전"], ["発表", "はっぴょう", "발표"], ["派手だ", "はでだ", "화려하다"], ["話し合う", "はなしあう", "서로 이야기하다, 의논하다"], ["ばらばら", "ばらばら", "뿔뿔이, 따로따로"], ["晴れる", "はれる", "(날씨가) 개다"], ["番組", "ばんぐみ", "(방송) 프로그램"], ["反対", "はんたい", "반대"], ["パンフレット", "パンフレット", "팸플릿"], ["冷える", "ひえる", "차가워지다, 식다"], ["比較", "ひかく", "비교"], ["引き受ける", "ひきうける", "떠맡다"], ["低い", "ひくい", "낮다"], ["非常に", "ひじょうに", "매우, 대단히"], ["ぴったり", "ぴったり", "딱 맞는 모양"], ["引っ張る", "ひっぱる", "끌어당기다"], ["否定", "ひてい", "부정"], ["秘密", "ひみつ", "비밀"], ["微妙", "びみょう", "미묘"], ["秒", "びょう", "초(시간)"]], [["評判", "ひょうばん", "평판, 소문"], ["表面", "ひょうめん", "표면"], ["疲労", "ひろう", "피로"], ["不安", "ふあん", "불안"], ["風景", "ふうけい", "풍경"], ["夫婦", "ふうふ", "부부"], ["深い", "ふかい", "깊다"], ["拭く", "ふく", "닦다"], ["複雑", "ふくざつ", "복잡"], ["復習", "ふくしゅう", "복습"], ["複数", "ふくすう", "복수"], ["服装", "ふくそう", "복장"], ["普通", "ふつう", "보통"], ["部分", "ぶぶん", "부분"], ["ぶらぶら", "ぶらぶら", "어슬렁어슬렁, 대롱대롱"], ["ふらふら", "ふらふら", "휘청휘청"], ["触れる", "ふれる", "닿다, 접촉하다"], ["分野", "ぶんや", "분야"], ["分類", "ぶんるい", "분류"], ["平均", "へいきん", "평균"], ["平日", "へいじつ", "평일"], ["平素", "へいそ", "평소"], ["別々", "べつべつ", "각각, 따로따로"], ["ぺらぺら", "ぺらぺら", "(외국어를) 술술"], ["変", "へん", "이상함"], ["変化", "へんか", "변화"], ["変更", "へんこう", "변경"], ["貿易", "ぼうえき", "무역"], ["方角", "ほうがく", "방위, 방향"], ["方向", "ほうこう", "방향"], ["報告", "ほうこく", "보고"], ["方法", "ほうほう", "방법"], ["訪問", "ほうもん", "방문"], ["法律", "ほうりつ", "법률"], ["募金", "ぼきん", "모금"], ["募集", "ぼしゅう", "모집"], ["干す", "ほす", "말리다, 널다"], ["細い", "ほそい", "가늘다"], ["歩道", "ほどう", "보도"], ["本日", "ほんじつ", "금일, 오늘"], ["翻訳", "ほんやく", "번역"], ["負ける", "まける", "지다"], ["まごまご", "まごまご", "우물쭈물, 허둥지둥"], ["交ざる", "まざる", "섞이다"], ["貧しい", "まずしい", "가난하다"], ["混ぜる", "まぜる", "섞다"], ["窓口", "まどぐち", "창구"], ["マナー", "マナー", "매너"], ["間に合う", "まにあう", "시간에 맞추다"], ["招く", "まねく", "초대하다, 부르다"]], [["眩しい", "まぶしい", "눈부시다"], ["豆", "まめ", "콩"], ["守る", "まもる", "지키다"], ["迷う", "まよう", "망설이다, 길을 잃다"], ["丸い", "まるい", "둥글다"], ["回す", "まわす", "돌리다"], ["満足", "まんぞく", "만족"], ["見方", "みかた", "견해, 보는 법"], ["短い", "みじかい", "짧다"], ["湖", "みずうみ", "호수"], ["身近", "みぢか", "가까움, 친숙함"], ["導く", "みちびく", "이끌다, 안내하다"], ["見つける", "みつける", "찾아내다, 발견하다"], ["港", "みなと", "항구"], ["見本", "みほん", "견본"], ["未来", "みらい", "미래"], ["向かう", "むかう", "향하다"], ["向き", "むき", "방향, 적합함"], ["剥く", "むく", "(껍질을) 벗기다"], ["結ぶ", "むすぶ", "묶다, 맺다"], ["娘", "むすめ", "딸"], ["無駄だ", "むだだ", "쓸데없다, 헛되다"], ["夢中", "むちゅう", "열중, 몰두"], ["命令", "めいれい", "명령"], ["迷惑", "めいわく", "폐, 민폐"], ["眼鏡", "めがね", "안경"], ["目覚ましい", "めざましい", "눈부시다, 놀랍다"], ["珍しい", "めずらしい", "드물다, 신기하다"], ["目立つ", "めだつ", "눈에 띄다"], ["面接", "めんせつ", "면접"], ["面倒臭い", "めんどうくさい", "귀찮다"], ["申し込み", "もうしこみ", "신청"], ["申込書", "もうしこみしょ", "신청서"], ["燃える", "もえる", "타다, 불타다"], ["目的", "もくてき", "목적"], ["目標", "もくひょう", "목표"], ["もったいない", "もったいない", "아깝다"], ["森", "もり", "숲"], ["文句", "もんく", "불평, 불만"], ["焼く", "やく", "굽다, 태우다"], ["訳す", "やくす", "번역하다"], ["役立つ", "やくだつ", "도움이 되다"], ["家賃", "やちん", "집세"], ["やっと", "やっと", "겨우, 간신히"], ["屋根", "やね", "지붕"], ["やはり", "やはり", "역시"], ["破れる", "やぶれる", "찢어지다"], ["やめる", "やめる", "그만두다"], ["やり方", "やりかた", "하는 방법"], ["優勝", "ゆうしょう", "우승"]], [["夕食", "ゆうしょく", "저녁 식사"], ["夕日", "ゆうひ", "석양"], ["郵便", "ゆうびん", "우편"], ["有名", "ゆうめい", "유명"], ["ユーモア", "ユーモア", "유머"], ["有料", "ゆうりょう", "유료"], ["床", "ゆか", "바닥"], ["行方", "ゆくえ", "행방"], ["輸出", "ゆしゅつ", "수출"], ["輸入", "ゆにゅう", "수입(물품)"], ["ゆらゆら", "ゆらゆら", "흔들흔들"], ["緩い", "ゆるい", "느슨하다, 헐겁다"], ["許す", "ゆるす", "허락하다, 용서하다"], ["酔う", "よう", "취하다"], ["用意", "ようい", "준비"], ["容器", "ようき", "용기"], ["要求", "ようきゅう", "요구"], ["用事", "ようじ", "볼일"], ["様子", "ようす", "모습, 상태"], ["翌日", "よくじつ", "다음 날"], ["汚れる", "よごれる", "더러워지다"], ["予想", "よそう", "예상"], ["予定", "よてい", "예정"], ["夜中", "よなか", "한밤중"], ["呼びかける", "よびかける", "호소하다, 말을 걸다"], ["予報", "よほう", "예보"], ["予防", "よぼう", "예방"], ["予約", "よやく", "예약"], ["楽だ", "らくだ", "편하다"], ["立派だ", "りっぱだ", "훌륭하다"], ["理由", "りゆう", "이유"], ["留学", "りゅうがく", "유학"], ["両替", "りょうがえ", "환전"], ["領収書", "りょうしゅうしょ", "영수증"], ["旅行", "りょこう", "여행"], ["留守", "るす", "부재, 집을 비움"], ["歴史", "れきし", "역사"], ["レシピ", "レシピ", "레시피"], ["練習", "れんしゅう", "연습"], ["連絡", "れんらく", "연락"], ["録音", "ろくおん", "녹음"], ["論文", "ろんぶん", "논문"], ["若い", "わかい", "젊다"], ["別れる", "わかれる", "헤어지다"], ["沸く", "わく", "끓다, 달아오르다"], ["渡す", "わたす", "건네주다"], ["笑う", "わらう", "웃다"], ["割合", "わりあい", "비율"], ["割引", "わりびき", "할인"], ["割れる", "われる", "깨지다, 갈라지다"]]];
+const DAYS = DATA.length;
+
+/* ---------- storage (best-effort) ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v==null? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let mem = { favs: store.get('n3fav', []), cfg: store.get('n3cfg', {day:1, prev:true, favOnly:false}) };
+const favs = new Set(mem.favs);
+const saveFavs = () => store.set('n3fav', [...favs]);
+const saveCfg = () => store.set('n3cfg', mem.cfg);
+
+/* ---------- helpers ---------- */
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const $ = (s, r=document) => r.querySelector(s);
+const app = $('#app');
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// flatten: {id, day, w, r, m}
+const ALL = [];
+DATA.forEach((words, di) => words.forEach((x, i) => ALL.push({ id:`${di+1}-${i}`, day:di+1, w:x[0], r:x[1], m:x[2] })));
+
+function buildPool(){
+  const { day, prev, favOnly } = mem.cfg;
+  let pool = ALL.filter(x => prev ? x.day <= day : x.day === day);
+  if(favOnly) pool = pool.filter(x => favs.has(x.id));
+  return pool;
+}
+
+/* ---------- state ---------- */
+let S = null; // study session
+const SKEY = 'n3session';
+function saveSession(){
+  if(!S) return;
+  store.set(SKEY, { total:S.total, queue:S.queue.map(x=>x.id), wrong:S.wrong.map(x=>x.id), known:S.known, round:S.round, again:S.again, missed:[...S.missed], hist:S.hist.slice(-30), day:S.day, prev:S.prev, favOnly:S.favOnly, at:Date.now() });
+}
+function clearSession(){ try{ localStorage.removeItem(SKEY); }catch(e){} }
+function loadSession(){
+  const o = store.get(SKEY, null); if(!o || !o.queue || !o.queue.length) return null;
+  const byId = Object.fromEntries(ALL.map(x=>[x.id,x]));
+  const q = o.queue.map(i=>byId[i]).filter(Boolean); if(!q.length) return null;
+  return { total:o.total, queue:q, wrong:(o.wrong||[]).map(i=>byId[i]).filter(Boolean), known:o.known, round:o.round, again:o.again, missed:new Map(o.missed||[]), hist:o.hist||[], day:o.day, prev:o.prev, favOnly:o.favOnly, revealed:false };
+}
+
+/* ---------- views ---------- */
+function renderHome(){
+  S = null;
+  const pool = buildPool();
+  const saved = loadSession();
+  const favItems = ALL.filter(x => favs.has(x.id));
+  app.innerHTML = `
+  <div class="home fade">
+    <div class="top"><div class="title">N3 단어 암기</div><div style="font-size:13px;color:var(--muted)">총 ${ALL.length}단어</div></div>
+    ${saved ? `<button class="resume" id="resume"><div><b>이어하기 · DAY ${saved.day}${saved.prev?' (누적)':''}${saved.favOnly?' ⭐':''}</b><small>${saved.known}/${saved.total} 완료 · ${saved.round}회차 · 남은 ${saved.queue.length}</small></div><span>▶</span></button>` : ''}
+    <h1>세트 선택</h1>
+    <p class="sub">DAY를 고르면 그 날의 단어로 시작해요. 아래 옵션을 켜면 이전 일차 단어도 함께 나와요.</p>
+    <div class="days">
+      ${DATA.map((w,i)=>`<button class="day ${mem.cfg.day===i+1?'sel':''}" data-day="${i+1}"><b>DAY ${i+1}</b><span>${w.length}단어</span></button>`).join('')}
+    </div>
+    <div class="opts">
+      <div class="opt" data-opt="prev"><div>이전 일차 단어 포함<small>DAY 1 ~ 선택한 DAY까지 누적</small></div><div class="sw ${mem.cfg.prev?'on':''}"></div></div>
+      <div class="opt" data-opt="favOnly"><div>⭐ 즐겨찾기만 학습<small>즐겨찾기 ${favItems.length}개</small></div><div class="sw ${mem.cfg.favOnly?'on':''}"></div></div>
+    </div>
+    <button class="primary" id="start" ${pool.length?'':'disabled'}>학습 시작</button>
+    <div class="count">${pool.length}단어 · 시작할 때마다 순서가 섞여요</div>
+    ${favItems.length ? `
+    <div class="favlist">
+      <h3>⭐ 즐겨찾기 (${favItems.length})</h3>
+      ${favItems.map(x=>`<div class="favitem"><span class="w">${esc(x.w)}</span>${x.r!==x.w?`<span class="r">${esc(x.r)}</span>`:''}<span class="m">${esc(x.m)}</span><span class="d">D${x.day}</span><button class="star-mini" data-unfav="${x.id}" aria-label="즐겨찾기 해제">★</button></div>`).join('')}
+    </div>` : ''}
+  </div>`;
+  app.querySelectorAll('.day').forEach(b => b.onclick = () => { mem.cfg.day = +b.dataset.day; saveCfg(); renderHome(); });
+  app.querySelectorAll('.opt').forEach(o => o.onclick = () => { const k=o.dataset.opt; mem.cfg[k]=!mem.cfg[k]; saveCfg(); renderHome(); });
+  app.querySelectorAll('[data-unfav]').forEach(b => b.onclick = () => { favs.delete(b.dataset.unfav); saveFavs(); renderHome(); });
+  $('#start').onclick = () => startSession(buildPool());
+  const rs = $('#resume'); if(rs) rs.onclick = () => { S = loadSession(); if(S) renderStudy(); else renderHome(); };
+}
+
+function startSession(pool){
+  if(!pool.length) return;
+  S = { total: pool.length, queue: shuffle(pool), wrong: [], known: 0, round: 1, again: 0, missed: new Map(), revealed:false, hist: [], day: mem.cfg.day, prev: mem.cfg.prev, favOnly: mem.cfg.favOnly };
+  saveSession();
+  renderStudy();
+}
+
+function snapshot(){
+  return JSON.stringify({ queue:S.queue.map(x=>x.id), wrong:S.wrong.map(x=>x.id), known:S.known, round:S.round, again:S.again, missed:[...S.missed] });
+}
+function restore(snap){
+  const o = JSON.parse(snap), byId = Object.fromEntries(ALL.map(x=>[x.id,x]));
+  S.queue = o.queue.map(i=>byId[i]); S.wrong = o.wrong.map(i=>byId[i]);
+  S.known = o.known; S.round = o.round; S.again = o.again; S.missed = new Map(o.missed);
+}
+
+function answer(isKnown){
+  if(!S || !S.queue.length) return;
+  S.hist.push(snapshot());
+  const cur = S.queue.shift();
+  if(isKnown) S.known++;
+  else { S.wrong.push(cur); S.again++; S.missed.set(cur.id, (S.missed.get(cur.id)||0)+1); }
+  if(!S.queue.length && S.wrong.length){ S.queue = shuffle(S.wrong); S.wrong = []; S.round++; }
+  S.revealed = false;
+  if(!S.queue.length){ clearSession(); return renderResult(); }
+  saveSession();
+  renderStudy();
+}
+function undo(){
+  if(!S || !S.hist.length) return;
+  restore(S.hist.pop()); S.revealed = false; saveSession(); renderStudy();
+}
+function toggleFav(id){
+  favs.has(id) ? favs.delete(id) : favs.add(id); saveFavs();
+}
+
+function wordSize(w){
+  const n = [...w].length;
+  return n<=3?72 : n<=4?62 : n<=5?52 : n<=6?44 : n<=8?36 : 30;
+}
+
+function renderStudy(){
+  const c = S.queue[0];
+  const pct = Math.round(S.known / S.total * 100);
+  const showReading = c.r !== c.w;
+  app.innerHTML = `
+  <div class="fade">
+    <div class="top">
+      <button class="round-btn" id="back" aria-label="홈">‹</button>
+      <div class="title">N3 단어 학습</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="prog">
+      <div class="n">${S.known}/${S.total}</div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="round-chip">${S.round}회차 · 남은 ${S.queue.length}</div>
+    </div>
+  </div>
+  <div class="card fade" id="card">
+    <div class="card-head">
+      <div class="dayTag">DAY ${c.day}</div>
+      <button class="star ${favs.has(c.id)?'on':''}" id="fav" aria-label="즐겨찾기">${favs.has(c.id)?'★':'☆'}</button>
+    </div>
+    <div class="stage">
+      <div class="reading">${S.revealed && showReading ? esc(c.r) : ''}</div>
+      <div class="word" style="font-size:${wordSize(c.w)}px">${esc(c.w)}</div>
+      <div class="meaning">${S.revealed ? esc(c.m) : ''}</div>
+    </div>
+    <div class="card-foot">
+      <button class="undo" id="undo" ${S.hist.length?'':'disabled'} aria-label="되돌리기">↩</button>
+      ${S.revealed ? '' : '<button class="reveal" id="reveal">의미·히라가나</button>'}
+    </div>
+  </div>
+  <div class="answers">
+    <button class="ans" id="again">다시 학습</button>
+    <button class="ans ok" id="known">알고있음</button>
+  </div>
+  <div class="hint">진행도는 자동 저장돼요 · Space: 정답 보기 · ← 다시 학습 · → 알고있음 · Z 되돌리기</div>`;
+  $('#back').onclick = () => { if(confirm_()) renderHome(); };
+  $('#fav').onclick = () => { toggleFav(c.id); const on=favs.has(c.id); const b=$('#fav'); b.classList.toggle('on',on); b.textContent = on?'★':'☆'; };
+  $('#undo').onclick = undo;
+  const rv = $('#reveal'); if(rv) rv.onclick = reveal;
+  $('#again').onclick = () => answer(false);
+  $('#known').onclick = () => answer(true);
+}
+// no native confirm in sandbox: leaving just returns home
+function confirm_(){ return true; }
+
+function reveal(){
+  if(!S || S.revealed || !S.queue.length) return;
+  S.revealed = true;
+  const c = S.queue[0];
+  $('.reading').textContent = (c.r !== c.w) ? c.r : '';
+  $('.meaning').textContent = c.m;
+  const rv = $('#reveal'); if(rv) rv.remove();
+}
+
+function renderResult(){
+  const missed = [...S.missed.entries()].map(([id,n])=>({x:ALL.find(a=>a.id===id), n})).sort((a,b)=>b.n-a.n);
+  const nextDay = Math.min(DAYS, (S.day||1)+1);
+  const canNext = !S.favOnly && (S.day||1) < DAYS;
+  app.innerHTML = `
+  <div class="result fade">
+    <div class="big">🎉</div>
+    <h2>모든 단어를 외웠어요!</h2>
+    <div class="stats">
+      <div class="stat"><b>${S.total}</b><span>전체 단어</span></div>
+      <div class="stat"><b>${S.round}</b><span>회차</span></div>
+      <div class="stat"><b>${S.again}</b><span>다시 학습</span></div>
+    </div>
+    ${missed.length ? `<div class="favlist missed"><h3>헷갈렸던 단어 (${missed.length})</h3>
+      ${missed.map(({x,n})=>`<div class="favitem"><span class="w">${esc(x.w)}</span>${x.r!==x.w?`<span class="r">${esc(x.r)}</span>`:''}<span class="m">${esc(x.m)}</span><span class="d">×${n}</span><button class="star-mini" data-fav="${x.id}">${favs.has(x.id)?'★':'☆'}</button></div>`).join('')}
+    </div>` : ''}
+    ${canNext ? `<button class="primary" id="next">다음 세트 DAY ${nextDay} (이전 단어 포함)</button>` : ''}
+    <button class="ghost" id="again2">이 세트 다시 (순서 섞기)</button>
+    <button class="ghost" id="home">홈으로</button>
+  </div>`;
+  app.querySelectorAll('[data-fav]').forEach(b => b.onclick = () => { toggleFav(b.dataset.fav); b.textContent = favs.has(b.dataset.fav)?'★':'☆'; });
+  const nx = $('#next'); if(nx) nx.onclick = () => { mem.cfg.day = nextDay; mem.cfg.prev = true; saveCfg(); startSession(buildPool()); };
+  $('#again2').onclick = () => startSession(buildPool());
+  $('#home').onclick = renderHome;
+}
+
+/* ---------- keyboard ---------- */
+document.addEventListener('keydown', e => {
+  if(!S || !S.queue.length) return;
+  if(e.code==='Space' || e.code==='Enter'){ e.preventDefault(); reveal(); }
+  else if(e.code==='ArrowRight'){ answer(true); }
+  else if(e.code==='ArrowLeft'){ answer(false); }
+  else if(e.key==='z' || e.key==='Z'){ undo(); }
+  else if(e.key==='s' || e.key==='S'){ $('#fav') && $('#fav').click(); }
+});
+
+renderHome();
+</script>
+</body>
+</html>
